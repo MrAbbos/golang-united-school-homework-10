@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -19,10 +20,16 @@ main function reads host/port from env just for an example, flavor it following 
 
 // Start /** Starts the web server listener on given host and port.
 func Start(host string, port int) {
-	router := mux.NewRouter()
+	r := mux.NewRouter()
 
 	log.Println(fmt.Printf("Starting API server on %s:%d\n", host, port))
-	if err := http.ListenAndServe(fmt.Sprintf("%s:%d", host, port), router); err != nil {
+	r.HandleFunc("/", InitialHandler)
+	r.HandleFunc("/name/{PARAM}", PathParamHandler)
+	r.HandleFunc("/bad", InternalErrHandler)
+	r.HandleFunc("/data", BodyReadHandler)
+	r.HandleFunc("/headers", HeaderReadHandler)
+
+	if err := http.ListenAndServe(fmt.Sprintf("%s:%d", host, port), r); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -35,4 +42,42 @@ func main() {
 		port = 8081
 	}
 	Start(host, port)
+}
+
+func InitialHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Server is up and running")
+}
+
+func PathParamHandler(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	parameter := params["PARAM"]
+	// w.WriteHeader(http.StatusOK)
+	bytes, _ := json.Marshal("Hello, " + parameter)
+	fmt.Println(bytes)
+	w.Write(bytes)
+
+	// fmt.Fprintf(w, "Hello, %v\n", parameter)
+}
+
+func InternalErrHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusInternalServerError)
+}
+
+type body struct {
+	PARAM string `json:"PARAM"`
+}
+
+func BodyReadHandler(w http.ResponseWriter, r *http.Request) {
+	b := body{}
+	json.NewDecoder(r.Body).Decode(&b)
+	bytes, _ := json.Marshal("I got message:\n" + b.PARAM)
+	w.Write(bytes)
+}
+
+func HeaderReadHandler(w http.ResponseWriter, r *http.Request) {
+	a := r.Header.Get("a")
+	b := r.Header.Get("b")
+	c:=a+b
+	bytes, _ := json.Marshal(`a+b: "`+c+`"`)
+	w.Write(bytes)
 }
