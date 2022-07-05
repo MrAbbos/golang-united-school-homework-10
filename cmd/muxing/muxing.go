@@ -51,12 +51,10 @@ func InitialHandler(w http.ResponseWriter, r *http.Request) {
 func PathParamHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	parameter := params["PARAM"]
-	// w.WriteHeader(http.StatusOK)
-	bytes, _ := json.Marshal("Hello, " + parameter)
-	fmt.Println(bytes)
-	w.Write(bytes)
-
-	// fmt.Fprintf(w, "Hello, %v\n", parameter)
+	// bytes, _ := json.Marshal("Hello, " + parameter)
+	fmt.Fprintf(w, "Hello, %v", parameter)
+	// fmt.Println(bytes)
+	// w.Write(bytes)
 }
 
 func InternalErrHandler(w http.ResponseWriter, r *http.Request) {
@@ -70,14 +68,16 @@ type body struct {
 func BodyReadHandler(w http.ResponseWriter, r *http.Request) {
 	b := body{}
 	json.NewDecoder(r.Body).Decode(&b)
-	bytes, _ := json.Marshal("I got message:\n" + b.PARAM)
-	w.Write(bytes)
+	// bytes, _ := json.Marshal("I got message:\n" + b.PARAM)
+	// w.Write(bytes)
+	fmt.Fprintf(w, "I got message:\n%v", string(b.PARAM))
 }
 
 func HeaderReadHandler(w http.ResponseWriter, r *http.Request) {
 	a := r.Header.Get("a")
 	b := r.Header.Get("b")
-	c:=a+b
-	bytes, _ := json.Marshal(`a+b: "`+c+`"`)
-	w.Write(bytes)
+	inta, _ := strconv.Atoi(a)
+	intb, _ := strconv.Atoi(b)
+	c := inta + intb
+	w.Header().Set("a+b", strconv.Itoa(c))
 }
