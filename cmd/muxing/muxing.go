@@ -1,8 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -52,7 +52,7 @@ func PathParamHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	parameter := params["PARAM"]
 	// bytes, _ := json.Marshal("Hello, " + parameter)
-	fmt.Fprintf(w, "Hello, %v", parameter)
+	fmt.Fprintf(w, "Hello, %v!", parameter)
 	// fmt.Println(bytes)
 	// w.Write(bytes)
 }
@@ -66,11 +66,12 @@ type body struct {
 }
 
 func BodyReadHandler(w http.ResponseWriter, r *http.Request) {
-	b := body{}
-	json.NewDecoder(r.Body).Decode(&b)
+	// b := body{}
+	// json.NewDecoder(r.Body).Decode(&b)
 	// bytes, _ := json.Marshal("I got message:\n" + b.PARAM)
 	// w.Write(bytes)
-	fmt.Fprintf(w, "I got message:\n%v", string(b.PARAM))
+	data, _ := io.ReadAll(r.Body)
+	fmt.Fprintf(w, "I got message:\n%v", string(data))
 }
 
 func HeaderReadHandler(w http.ResponseWriter, r *http.Request) {
